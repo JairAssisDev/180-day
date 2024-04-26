@@ -6,12 +6,8 @@ import lime
 import lime.lime_tabular
 import pandas as pd
 import json
-
 import base64
 import io
-
-
-
 
 
 MODELS_DIR = "models"
@@ -22,8 +18,6 @@ def predict(model, instance):
     return prediction, probability
 
 
-
-
 def create_lime_explainer(model, train_data, feature_names, class_names):
     return lime.lime_tabular.LimeTabularExplainer(train_data, mode="classification", training_labels=class_names, feature_names=feature_names, random_state=0)
 
@@ -32,7 +26,6 @@ def explain(model, explainer, instance):
 
 def extract_lime_values(lime_explanation):
     return lime_explanation.as_list()
-
 
 
 def diseases_and_models():
@@ -81,6 +74,7 @@ def ver_instace(cancer_type, model):
     json_output = json.dumps(output_data)
 
     return json_output
+
 
 def cancer_predict(cancer_type, model, instance):
     model_path = os.path.join("models", f"{cancer_type}/{model}.joblib")
