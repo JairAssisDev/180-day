@@ -7,6 +7,11 @@ import lime.lime_tabular
 import pandas as pd
 import json
 
+import base64
+import io
+
+
+
 
 
 MODELS_DIR = "models"
@@ -18,7 +23,7 @@ def predict(model, instance):
 
 
 
-# Lime Explanation Functions
+
 def create_lime_explainer(model, train_data, feature_names, class_names):
     return lime.lime_tabular.LimeTabularExplainer(train_data, mode="classification", training_labels=class_names, feature_names=feature_names, random_state=0)
 
@@ -27,6 +32,7 @@ def explain(model, explainer, instance):
 
 def extract_lime_values(lime_explanation):
     return lime_explanation.as_list()
+
 
 
 def diseases_and_models():
@@ -71,6 +77,7 @@ def ver_instace(cancer_type, model):
         "Feature_types": feature_types
     }
 
+    
     json_output = json.dumps(output_data)
 
     return json_output
@@ -86,15 +93,50 @@ def cancer_predict(cancer_type, model, instance):
 
     instance_array = np.array([[instance[feature_name] for feature_name in feature_names]])
 
-    prediction, probability = predict(model, instance_array)
+    prediction = model.predict(instance_array)
+    probabilities = model.predict_proba(instance_array)[0] 
+
+
+    if len(probabilities) != 2:
+        raise ValueError("A lista de probabilidades deve conter exatamente duas probabilidades.")
+
+
+    prediction = prediction.tolist()
+    probabilities = probabilities.tolist()
+
+
+    return save_prediction_probability_plot(prediction, probabilities)
+
+
+
+
+def encode_image_to_base64(image):
+    return base64.b64encode(image).decode('utf-8')
+
+def save_prediction_probability_plot(prediction, probabilities):
+    color1='red'
+    color2='green'
+
+    if len(probabilities) != 2:
+        raise ValueError("A lista de probabilidades deve conter exatamente duas probabilidades.")
+
+    fig, ax = plt.subplots()
+    ax.barh(["Low Risk", "High Risk"], probabilities, color=[color1, color2], alpha=0.5)
+    ax.set_xlabel('Probabilidade')
+    ax.set_title('Predição: {}'.format(prediction))
+
+    image_buffer = io.BytesIO()
+    plt.savefig(image_buffer, format='png')
+    image_buffer.seek(0)
+    image_bytes = image_buffer.read()
+    plt.close()
+
+    encoded_image = encode_image_to_base64(image_bytes)
 
     result = {
-        "prediction": prediction.tolist(),
-        "probability": probability.tolist()
+        "prediction": prediction,
+        "probabilities": probabilities,
+        "image_base64": encoded_image
     }
 
-    return json.dumps(result, indent=4)
-
-
-
-
+    return json.dumps(result)
