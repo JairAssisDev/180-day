@@ -1,28 +1,32 @@
-from flask import Flask,request
-from flask_cors import CORS
-
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 import predict
 
-app = Flask(__name__)
-CORS(app)
+app = FastAPI()
 
-@app.route("/diseases_models", methods=["GET"])
-def diseases_models():
+# Adicionando suporte para CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/diseases_models")
+async def diseases_models():
     return predict.diseases_and_models()
 
-@app.route("/feature_names_models", methods=['GET'])
-def feature_names_models():
-    doença = request.args.get('cancer_type')
-    model = request.args.get('model')
-    return predict.ver_instace(doença,model)
+@app.get("/feature_names_models")
+async def feature_names_models(cancer_type: str, model: str):
+    return predict.ver_instace(cancer_type, model)
 
-@app.route("/predict", methods=['POST'])
-def cancer_predict():
-    data = request.json
+@app.post("/predict")
+async def cancer_predict(data: dict):
     type_cancer = data['type_cancer']
     model = data["model"]
     instance = data["instance"]
-    return predict.cancer_predict(type_cancer,model,instance)
-
-if __name__ == '__main__':
-    app.run()
+    try:
+        return predict.cancer_predict(type_cancer, model, instance)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
