@@ -2,14 +2,14 @@
 
 docker build -t api180day .
 
-docker run -d -p 8000:8000 api180day
+docker run -d -p 5000:5000 api180day
 
 
-http://127.0.0.1:8000/diseases_models
+http://127.0.0.1:5000/diseases_models
 
-http://127.0.0.1:8000/feature_names_models?cancer_type=Prostate&model=SVM
+http://127.0.0.1:5000/feature_names_models?cancer_type=Prostate&model=SVM
 
-http://127.0.0.1:8000/predict
+http://127.0.0.1:5000/predict
 {
   "type_cancer": "Prostate",
   "model": "SVM",
