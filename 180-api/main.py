@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
 import predict
 
 app = FastAPI()
@@ -30,3 +31,8 @@ async def cancer_predict(data: dict):
         return predict.cancer_predict(type_cancer, model, instance)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    
+    
+if __name__ == "__main__":
+    
+    uvicorn.run(app, host="0.0.0.0", port=8000)
